@@ -27,7 +27,7 @@ const (
 	DefaultMaxBodySize = 25e6
 
 	// DefaultEnqueuedWriteTimeout is the maximum time a write request can wait to be processed.
-	DefaultEnqueuedWriteTimeout = 30 * time.Second
+	DefaultEnqueuedWriteTimeout = 90 * time.Second
 )
 
 // Config represents a configuration for a HTTP service.

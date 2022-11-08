@@ -13,7 +13,7 @@ import (
 
 const (
 	// DefaultTimeout is the default length of time to wait for first byte.
-	DefaultTimeout = 30 * time.Second
+	DefaultTimeout = 90 * time.Second
 )
 
 // Mux multiplexes a network connection.

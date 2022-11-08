@@ -55,7 +55,7 @@ func TestMain(m *testing.M) {
 	var r int
 	for _, indexType = range tsdb.RegisteredIndexes() {
 		// Setup benchmark server
-		c := NewConfig()
+		c := NewConfig("")
 		c.Retention.Enabled = false
 		c.Monitor.StoreEnabled = false
 		c.Meta.LoggingEnabled = false
@@ -89,7 +89,7 @@ func TestServer_HTTPResponseVersion(t *testing.T) {
 	}
 
 	version := "v1234"
-	s := OpenServerWithVersion(NewConfig(), version)
+	s := OpenServerWithVersion(NewConfig(t.Name()), version)
 	defer s.Close()
 
 	resp, _ := http.Get(s.URL() + "/query")
@@ -101,9 +101,9 @@ func TestServer_HTTPResponseVersion(t *testing.T) {
 
 // Ensure the database commands work.
 func TestServer_DatabaseCommands(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	test := tests.load(t, "database_commands")
 
@@ -122,8 +122,7 @@ func TestServer_DatabaseCommands(t *testing.T) {
 }
 
 func TestServer_Query_DropAndRecreateDatabase(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := tests.load(t, "drop_and_recreate_database")
@@ -132,13 +131,13 @@ func TestServer_Query_DropAndRecreateDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -152,8 +151,7 @@ func TestServer_Query_DropAndRecreateDatabase(t *testing.T) {
 }
 
 func TestServer_Query_DropDatabaseIsolated(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := tests.load(t, "drop_database_isolated")
@@ -165,13 +163,13 @@ func TestServer_Query_DropDatabaseIsolated(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -185,8 +183,7 @@ func TestServer_Query_DropDatabaseIsolated(t *testing.T) {
 }
 
 func TestServer_Query_DeleteSeries(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := tests.load(t, "delete_series_time")
@@ -195,12 +192,12 @@ func TestServer_Query_DeleteSeries(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, query := range test.queries {
-		if i == 0 {
-			if err := test.init(s); err != nil {
-				t.Fatalf("test init failed: %s", err)
-			}
-		}
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		if query.skip {
 			t.Logf("SKIP:: %s", query.name)
 			continue
@@ -214,8 +211,7 @@ func TestServer_Query_DeleteSeries(t *testing.T) {
 }
 
 func TestServer_Query_DeleteSeries_TagFilter(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := tests.load(t, "delete_series_time_tag_filter")
@@ -224,13 +220,13 @@ func TestServer_Query_DeleteSeries_TagFilter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -244,8 +240,7 @@ func TestServer_Query_DeleteSeries_TagFilter(t *testing.T) {
 }
 
 func TestServer_Query_DropAndRecreateSeries(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := tests.load(t, "drop_and_recreate_series")
@@ -254,13 +249,13 @@ func TestServer_Query_DropAndRecreateSeries(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -275,13 +270,12 @@ func TestServer_Query_DropAndRecreateSeries(t *testing.T) {
 	// Re-write data and test again.
 	retest := tests.load(t, "drop_and_recreate_series_retest")
 
-	for i, query := range retest.queries {
+	if err := retest.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+
+	for _, query := range retest.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := retest.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -295,8 +289,7 @@ func TestServer_Query_DropAndRecreateSeries(t *testing.T) {
 }
 
 func TestServer_Query_DropSeriesFromRegex(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := tests.load(t, "drop_series_from_regex")
@@ -305,13 +298,13 @@ func TestServer_Query_DropSeriesFromRegex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -326,11 +319,11 @@ func TestServer_Query_DropSeriesFromRegex(t *testing.T) {
 
 // Ensure retention policy commands work.
 func TestServer_RetentionPolicyCommands(t *testing.T) {
-	t.Parallel()
-	c := NewConfig()
+	c := NewConfig(t.Name())
 	c.Meta.RetentionAutoCreate = false
 	s := OpenServer(c)
 	defer s.Close()
+	t.Parallel()
 
 	test := tests.load(t, "retention_policy_commands")
 
@@ -355,9 +348,9 @@ func TestServer_RetentionPolicyCommands(t *testing.T) {
 
 // Ensure the autocreation of retention policy works.
 func TestServer_DatabaseRetentionPolicyAutoCreate(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	test := tests.load(t, "retention_policy_auto_create")
 
@@ -376,9 +369,9 @@ func TestServer_DatabaseRetentionPolicyAutoCreate(t *testing.T) {
 }
 
 func TestServer_ShowDatabases_NoAuth(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	test := Test{
 		queries: []*Query{
@@ -415,11 +408,11 @@ func TestServer_ShowDatabases_NoAuth(t *testing.T) {
 }
 
 func TestServer_ShowDatabases_WithAuth(t *testing.T) {
-	t.Parallel()
-	c := NewConfig()
+	c := NewConfig(t.Name())
 	c.HTTPD.AuthEnabled = true
 	s := OpenServer(c)
 	defer s.Close()
+	t.Parallel()
 
 	adminParams := map[string][]string{"u": []string{"admin"}, "p": []string{"admin"}}
 	readerParams := map[string][]string{"u": []string{"reader"}, "p": []string{"r"}}
@@ -485,9 +478,9 @@ func TestServer_ShowDatabases_WithAuth(t *testing.T) {
 
 // Ensure user commands work.
 func TestServer_UserCommands(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	// Create a database.
 	if _, err := s.CreateDatabase("db0"); err != nil {
@@ -583,8 +576,7 @@ func TestServer_UserCommands(t *testing.T) {
 // - field too large
 // This should return a partial write and a status of 400
 func TestServer_Write_PartialWrite(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -652,7 +644,7 @@ func TestServer_Write_PartialWrite(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			assert.Equal(t, "", res)
-			res, err = s.Query(`SELECT * FROM db0.rp0.cpu`)
+			res, _, err = s.Query(`SELECT * FROM db0.rp0.cpu`)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.selectResult, res)
 		})
@@ -661,8 +653,7 @@ func TestServer_Write_PartialWrite(t *testing.T) {
 
 // Ensure the server can create a single point via line protocol with float type and read it back.
 func TestServer_Write_LineProtocol_Float(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1*time.Hour), true); err != nil {
@@ -675,9 +666,10 @@ func TestServer_Write_LineProtocol_Float(t *testing.T) {
 	} else if exp := ``; exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
 	}
+	t.Parallel()
 
 	// Verify the data was written.
-	if res, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
+	if res, _, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
 		t.Fatal(err)
 	} else if exp := fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","tags":{"host":"server01"},"columns":["time","value"],"values":[["%s",1]]}]}]}`, now.Format(time.RFC3339Nano)); exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
@@ -686,8 +678,7 @@ func TestServer_Write_LineProtocol_Float(t *testing.T) {
 
 // Ensure the server can create a single point via line protocol with bool type and read it back.
 func TestServer_Write_LineProtocol_Bool(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1*time.Hour), true); err != nil {
@@ -702,17 +693,17 @@ func TestServer_Write_LineProtocol_Bool(t *testing.T) {
 	}
 
 	// Verify the data was written.
-	if res, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
+	if res, _, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
 		t.Fatal(err)
 	} else if exp := fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","tags":{"host":"server01"},"columns":["time","value"],"values":[["%s",true]]}]}]}`, now.Format(time.RFC3339Nano)); exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
 	}
+	t.Parallel()
 }
 
 // Ensure the server can create a single point via line protocol with string type and read it back.
 func TestServer_Write_LineProtocol_String(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1*time.Hour), true); err != nil {
@@ -725,9 +716,10 @@ func TestServer_Write_LineProtocol_String(t *testing.T) {
 	} else if exp := ``; exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
 	}
+	t.Parallel()
 
 	// Verify the data was written.
-	if res, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
+	if res, _, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
 		t.Fatal(err)
 	} else if exp := fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","tags":{"host":"server01"},"columns":["time","value"],"values":[["%s","disk full"]]}]}]}`, now.Format(time.RFC3339Nano)); exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
@@ -736,8 +728,7 @@ func TestServer_Write_LineProtocol_String(t *testing.T) {
 
 // Ensure the server can create a single point via line protocol with integer type and read it back.
 func TestServer_Write_LineProtocol_Integer(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1*time.Hour), true); err != nil {
@@ -750,9 +741,10 @@ func TestServer_Write_LineProtocol_Integer(t *testing.T) {
 	} else if exp := ``; exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
 	}
+	t.Parallel()
 
 	// Verify the data was written.
-	if res, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
+	if res, _, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
 		t.Fatal(err)
 	} else if exp := fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","tags":{"host":"server01"},"columns":["time","value"],"values":[["%s",100]]}]}]}`, now.Format(time.RFC3339Nano)); exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
@@ -761,8 +753,7 @@ func TestServer_Write_LineProtocol_Integer(t *testing.T) {
 
 // Ensure the server can create a single point via line protocol with unsigned type and read it back.
 func TestServer_Write_LineProtocol_Unsigned(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1*time.Hour), true); err != nil {
@@ -775,9 +766,10 @@ func TestServer_Write_LineProtocol_Unsigned(t *testing.T) {
 	} else if exp := ``; exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
 	}
+	t.Parallel()
 
 	// Verify the data was written.
-	if res, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
+	if res, _, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
 		t.Fatal(err)
 	} else if exp := fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","tags":{"host":"server01"},"columns":["time","value"],"values":[["%s",100]]}]}]}`, now.Format(time.RFC3339Nano)); exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
@@ -787,8 +779,7 @@ func TestServer_Write_LineProtocol_Unsigned(t *testing.T) {
 // Ensure the server returns a partial write response when some points fail to parse. Also validate that
 // the successfully parsed points can be queried.
 func TestServer_Write_LineProtocol_Partial(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1*time.Hour), true); err != nil {
@@ -808,9 +799,10 @@ func TestServer_Write_LineProtocol_Partial(t *testing.T) {
 	} else if exp := "partial write"; !strings.Contains(err.Error(), exp) {
 		t.Fatalf("unexpected error: exp\nexp: %v\ngot: %v", exp, err)
 	}
+	t.Parallel()
 
 	// Verify the data was written.
-	if res, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
+	if res, _, err := s.Query(`SELECT * FROM db0.rp0.cpu GROUP BY *`); err != nil {
 		t.Fatal(err)
 	} else if exp := fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","tags":{"host":"server01"},"columns":["time","value"],"values":[["%s",100]]}]}]}`, now.Format(time.RFC3339Nano)); exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
@@ -819,8 +811,7 @@ func TestServer_Write_LineProtocol_Partial(t *testing.T) {
 
 // Ensure the server can query with default databases (via param) and default retention policy
 func TestServer_Query_DefaultDBAndRP(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -861,6 +852,7 @@ func TestServer_Query_DefaultDBAndRP(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -877,9 +869,9 @@ func TestServer_Query_DefaultDBAndRP(t *testing.T) {
 }
 
 func TestServer_ShowShardsNonInf(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 1000000*time.Hour), true); err != nil {
 		t.Fatal(err)
@@ -905,7 +897,7 @@ func TestServer_ShowShardsNonInf(t *testing.T) {
 		`[1,"db0","rp0",1,"2021-05-17T00:00:00Z","2021-05-24T00:00:00Z","2135-06-22T16:00:00Z",""],` +
 		`[2,"db0","rp1",2,"2021-05-17T00:00:00Z","2021-05-24T00:00:00Z","",""]]}]}]}`
 	// Verify the data was written.
-	if res, err := s.Query(`show shards`); err != nil {
+	if res, _, err := s.Query(`show shards`); err != nil {
 		t.Fatal(err)
 	} else if exp != res {
 		t.Fatalf("unexpected results\nexp: %s\ngot: %s\n", exp, res)
@@ -914,9 +906,9 @@ func TestServer_ShowShardsNonInf(t *testing.T) {
 
 // Ensure the server can have a database with multiple measurements.
 func TestServer_Query_Multiple_Measurements(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	// Make sure we do writes for measurements that will span across shards
 	writes := []string{
@@ -961,8 +953,7 @@ func TestServer_Query_Multiple_Measurements(t *testing.T) {
 
 // Ensure the server correctly supports data with identical tag values.
 func TestServer_Query_IdenticalTagValues(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	writes := []string{
@@ -996,6 +987,7 @@ func TestServer_Query_IdenticalTagValues(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -1013,9 +1005,9 @@ func TestServer_Query_IdenticalTagValues(t *testing.T) {
 
 // Ensure the server can handle a query that involves accessing no shards.
 func TestServer_Query_NoShards(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	now := now()
 
@@ -1052,9 +1044,9 @@ func TestServer_Query_NoShards(t *testing.T) {
 
 // Ensure the server can query a non-existent field
 func TestServer_Query_NonExistent(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	now := now()
 
@@ -1096,9 +1088,9 @@ func TestServer_Query_NonExistent(t *testing.T) {
 
 // Ensure the server can perform basic math
 func TestServer_Query_Math(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	now := now()
 	writes := []string{
@@ -1189,9 +1181,9 @@ func TestServer_Query_Math(t *testing.T) {
 
 // Ensure the server can query with the count aggregate function
 func TestServer_Query_Count(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	now := now()
 
@@ -1265,11 +1257,11 @@ func TestServer_Query_Count(t *testing.T) {
 
 // Ensure the server can limit concurrent series.
 func TestServer_Query_MaxSelectSeriesN(t *testing.T) {
-	t.Parallel()
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.Coordinator.MaxSelectSeriesN = 3
 	s := OpenServer(config)
 	defer s.Close()
+	t.Parallel()
 
 	test := NewTest("db0", "rp0")
 	test.writes = Writes{
@@ -1307,8 +1299,7 @@ func TestServer_Query_MaxSelectSeriesN(t *testing.T) {
 
 // Ensure the server can query with Now().
 func TestServer_Query_Now(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1344,6 +1335,7 @@ func TestServer_Query_Now(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -1361,8 +1353,7 @@ func TestServer_Query_Now(t *testing.T) {
 
 // Ensure the server can query with epoch precisions.
 func TestServer_Query_EpochPrecision(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1414,6 +1405,7 @@ func TestServer_Query_EpochPrecision(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -1431,8 +1423,7 @@ func TestServer_Query_EpochPrecision(t *testing.T) {
 
 // Ensure the server works with tag queries.
 func TestServer_Query_Tags(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1592,6 +1583,7 @@ func TestServer_Query_Tags(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -1609,8 +1601,7 @@ func TestServer_Query_Tags(t *testing.T) {
 
 // Ensure the server correctly queries with an alias.
 func TestServer_Query_Alias(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	writes := []string{
@@ -1668,6 +1659,7 @@ func TestServer_Query_Alias(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -1685,8 +1677,7 @@ func TestServer_Query_Alias(t *testing.T) {
 
 // Ensure the server will succeed and error for common scenarios.
 func TestServer_Query_Common(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1742,6 +1733,7 @@ func TestServer_Query_Common(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -1759,8 +1751,7 @@ func TestServer_Query_Common(t *testing.T) {
 
 // Ensure the server can query two points.
 func TestServer_Query_SelectTwoPoints(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1783,13 +1774,13 @@ func TestServer_Query_SelectTwoPoints(t *testing.T) {
 		},
 	)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -1804,8 +1795,7 @@ func TestServer_Query_SelectTwoPoints(t *testing.T) {
 
 // Ensure the server can query two negative points.
 func TestServer_Query_SelectTwoNegativePoints(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1821,13 +1811,13 @@ func TestServer_Query_SelectTwoNegativePoints(t *testing.T) {
 		exp:     fmt.Sprintf(`{"results":[{"statement_id":0,"series":[{"name":"cpu","columns":["time","value"],"values":[["%s",-100],["%s",-200]]}]}]}`, now.Format(time.RFC3339Nano), now.Add(1).Format(time.RFC3339Nano)),
 	})
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -1842,8 +1832,7 @@ func TestServer_Query_SelectTwoNegativePoints(t *testing.T) {
 
 // Ensure the server can query with relative time.
 func TestServer_Query_SelectRelativeTime(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	now := now()
@@ -1867,13 +1856,13 @@ func TestServer_Query_SelectRelativeTime(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	//t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -1888,8 +1877,7 @@ func TestServer_Query_SelectRelativeTime(t *testing.T) {
 
 // Ensure the server can handle various simple derivative queries.
 func TestServer_Query_SelectRawDerivative(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -1910,13 +1898,13 @@ func TestServer_Query_SelectRawDerivative(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -1931,8 +1919,7 @@ func TestServer_Query_SelectRawDerivative(t *testing.T) {
 
 // Ensure the server can handle various simple non_negative_derivative queries.
 func TestServer_Query_SelectRawNonNegativeDerivative(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -1957,13 +1944,13 @@ cpu value=20 1278010024000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -1978,8 +1965,7 @@ cpu value=20 1278010024000000000
 
 // Ensure the server can handle various group by time derivative queries.
 func TestServer_Query_SelectGroupByTimeDerivative(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2109,13 +2095,13 @@ cpu0,host=server02 ticks=101,total=100 1278010023000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2130,8 +2116,7 @@ cpu0,host=server02 ticks=101,total=100 1278010023000000000
 
 // Ensure the server can handle various group by time derivative queries.
 func TestServer_Query_SelectGroupByTimeDerivativeWithFill(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2344,13 +2329,13 @@ cpu value=20 1278010021000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2365,8 +2350,7 @@ cpu value=20 1278010021000000000
 
 // Ensure the server can handle various group by time difference queries.
 func TestServer_Query_SelectGroupByTimeDifference(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2431,13 +2415,13 @@ cpu value=25 1278010023000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2452,8 +2436,7 @@ cpu value=25 1278010023000000000
 
 // Ensure the server can handle various group by time difference queries with fill.
 func TestServer_Query_SelectGroupByTimeDifferenceWithFill(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2566,13 +2549,13 @@ cpu value=20 1278010021000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2587,8 +2570,7 @@ cpu value=20 1278010021000000000
 
 // Ensure the server can handle various group by time moving average queries.
 func TestServer_Query_SelectGroupByTimeMovingAverage(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2655,13 +2637,13 @@ cpu value=35 1278010025000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2676,8 +2658,7 @@ cpu value=35 1278010025000000000
 
 // Ensure the server can handle various group by time moving average queries.
 func TestServer_Query_SelectGroupByTimeMovingAverageWithFill(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2792,13 +2773,13 @@ cpu value=35 1278010025000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2813,8 +2794,7 @@ cpu value=35 1278010025000000000
 
 // Ensure the server can handle various group by time cumulative sum queries.
 func TestServer_Query_SelectGroupByTimeCumulativeSum(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -2879,13 +2859,13 @@ cpu value=25 1278010023000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -2900,8 +2880,7 @@ cpu value=25 1278010023000000000
 
 // Ensure the server can handle various group by time cumulative sum queries with fill.
 func TestServer_Query_SelectGroupByTimeCumulativeSumWithFill(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3014,13 +2993,13 @@ cpu value=20 1278010021000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3034,8 +3013,7 @@ cpu value=20 1278010021000000000
 }
 
 func TestServer_Query_CumulativeCount(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3057,13 +3035,13 @@ events signup=t 3838400000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3077,8 +3055,7 @@ events signup=t 3838400000
 }
 
 func TestServer_Query_SelectGroupByTime_MultipleAggregates(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3100,13 +3077,13 @@ test,t=b y=3i 3000000000
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3120,8 +3097,7 @@ test,t=b y=3i 3000000000
 }
 
 func TestServer_Query_MathWithFill(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3143,13 +3119,13 @@ func TestServer_Query_MathWithFill(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3165,8 +3141,7 @@ func TestServer_Query_MathWithFill(t *testing.T) {
 // mergeMany ensures that when merging many series together and some of them have a different number
 // of points than others in a group by interval the results are correct
 func TestServer_Query_MergeMany(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	// set infinite retention policy as we are inserting data in the past and don't want retention policy enforcement to make this test racy
@@ -3206,13 +3181,13 @@ func TestServer_Query_MergeMany(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3226,8 +3201,7 @@ func TestServer_Query_MergeMany(t *testing.T) {
 }
 
 func TestServer_Query_SLimitAndSOffset(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	// set infinite retention policy as we are inserting data in the past and don't want retention policy enforcement to make this test racy
@@ -3264,13 +3238,13 @@ func TestServer_Query_SLimitAndSOffset(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3284,8 +3258,7 @@ func TestServer_Query_SLimitAndSOffset(t *testing.T) {
 }
 
 func TestServer_Query_Regex(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -3340,13 +3313,13 @@ func TestServer_Query_Regex(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3360,8 +3333,7 @@ func TestServer_Query_Regex(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_Int(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3381,13 +3353,13 @@ func TestServer_Query_Aggregates_Int(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3401,8 +3373,7 @@ func TestServer_Query_Aggregates_Int(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_IntMax(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3422,13 +3393,13 @@ func TestServer_Query_Aggregates_IntMax(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3442,8 +3413,7 @@ func TestServer_Query_Aggregates_IntMax(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_IntMany(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3569,13 +3539,13 @@ func TestServer_Query_Aggregates_IntMany(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3589,8 +3559,7 @@ func TestServer_Query_Aggregates_IntMany(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_IntMany_GroupBy(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3664,13 +3633,13 @@ func TestServer_Query_Aggregates_IntMany_GroupBy(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3684,8 +3653,7 @@ func TestServer_Query_Aggregates_IntMany_GroupBy(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_IntMany_OrderByDesc(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3711,13 +3679,13 @@ func TestServer_Query_Aggregates_IntMany_OrderByDesc(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3731,8 +3699,7 @@ func TestServer_Query_Aggregates_IntMany_OrderByDesc(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_IntOverlap(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3779,13 +3746,13 @@ func TestServer_Query_Aggregates_IntOverlap(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3799,8 +3766,7 @@ func TestServer_Query_Aggregates_IntOverlap(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_FloatSingle(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3819,13 +3785,13 @@ func TestServer_Query_Aggregates_FloatSingle(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3839,8 +3805,7 @@ func TestServer_Query_Aggregates_FloatSingle(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_FloatMany(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -3960,13 +3925,13 @@ func TestServer_Query_Aggregates_FloatMany(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -3980,8 +3945,7 @@ func TestServer_Query_Aggregates_FloatMany(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_FloatOverlap(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -4027,13 +3991,13 @@ func TestServer_Query_Aggregates_FloatOverlap(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4047,8 +4011,7 @@ func TestServer_Query_Aggregates_FloatOverlap(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_GroupByOffset(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -4087,13 +4050,13 @@ func TestServer_Query_Aggregates_GroupByOffset(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4107,8 +4070,7 @@ func TestServer_Query_Aggregates_GroupByOffset(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_Load(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -4141,13 +4103,13 @@ func TestServer_Query_Aggregates_Load(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4161,8 +4123,7 @@ func TestServer_Query_Aggregates_Load(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_CPU(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -4182,13 +4143,13 @@ func TestServer_Query_Aggregates_CPU(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4202,8 +4163,7 @@ func TestServer_Query_Aggregates_CPU(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_String(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	test := NewTest("db0", "rp0")
@@ -4260,13 +4220,13 @@ func TestServer_Query_Aggregates_String(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4280,8 +4240,7 @@ func TestServer_Query_Aggregates_String(t *testing.T) {
 }
 
 func TestServer_Query_Aggregates_Math(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -4326,13 +4285,13 @@ func TestServer_Query_Aggregates_Math(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4347,8 +4306,7 @@ func TestServer_Query_Aggregates_Math(t *testing.T) {
 }
 
 func TestServer_Query_AggregateSelectors(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -4638,13 +4596,13 @@ func TestServer_Query_AggregateSelectors(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4659,8 +4617,7 @@ func TestServer_Query_AggregateSelectors(t *testing.T) {
 }
 
 func TestServer_Query_ExactTimeRange(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -4693,13 +4650,13 @@ func TestServer_Query_ExactTimeRange(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4714,8 +4671,7 @@ func TestServer_Query_ExactTimeRange(t *testing.T) {
 }
 
 func TestServer_Query_Selectors(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -4772,13 +4728,13 @@ func TestServer_Query_Selectors(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -4793,8 +4749,7 @@ func TestServer_Query_Selectors(t *testing.T) {
 }
 
 func TestServer_Query_TopBottomInt(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5026,13 +4981,13 @@ func TestServer_Query_TopBottomInt(t *testing.T) {
 
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP: %s", query.name)
 			}
@@ -5047,8 +5002,7 @@ func TestServer_Query_TopBottomInt(t *testing.T) {
 }
 
 func TestServer_Query_TopBottomWriteTags(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5094,13 +5048,13 @@ func TestServer_Query_TopBottomWriteTags(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP: %s", query.name)
 			}
@@ -5116,8 +5070,7 @@ func TestServer_Query_TopBottomWriteTags(t *testing.T) {
 
 // Test various aggregates when different series only have data for the same timestamp.
 func TestServer_Query_Aggregates_IdenticalTime(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5158,13 +5111,13 @@ func TestServer_Query_Aggregates_IdenticalTime(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -5182,8 +5135,7 @@ func TestServer_Query_Aggregates_IdenticalTime(t *testing.T) {
 // This will test that when using a group by, that it observes the time you asked for
 // but will only put the values in the bucket that match the time range
 func TestServer_Query_GroupByTimeCutoffs(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5242,13 +5194,13 @@ func TestServer_Query_GroupByTimeCutoffs(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -5262,8 +5214,7 @@ func TestServer_Query_GroupByTimeCutoffs(t *testing.T) {
 }
 
 func TestServer_Query_MapType(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5318,13 +5269,13 @@ func TestServer_Query_MapType(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -5338,8 +5289,7 @@ func TestServer_Query_MapType(t *testing.T) {
 }
 
 func TestServer_Query_Subqueries(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5499,8 +5449,7 @@ func TestServer_Query_Subqueries(t *testing.T) {
 }
 
 func TestServer_Query_SubqueryWithGroupBy(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5551,13 +5500,13 @@ func TestServer_Query_SubqueryWithGroupBy(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -5571,8 +5520,7 @@ func TestServer_Query_SubqueryWithGroupBy(t *testing.T) {
 }
 
 func TestServer_Query_SubqueryMath(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5601,6 +5549,7 @@ func TestServer_Query_SubqueryMath(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -5617,8 +5566,7 @@ func TestServer_Query_SubqueryMath(t *testing.T) {
 }
 
 func TestServer_Query_PercentileDerivative(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5649,6 +5597,7 @@ func TestServer_Query_PercentileDerivative(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -5665,8 +5614,7 @@ func TestServer_Query_PercentileDerivative(t *testing.T) {
 }
 
 func TestServer_Query_UnderscoreMeasurement(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5693,6 +5641,7 @@ func TestServer_Query_UnderscoreMeasurement(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -5709,8 +5658,7 @@ func TestServer_Query_UnderscoreMeasurement(t *testing.T) {
 }
 
 func TestServer_Write_Precision(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5808,6 +5756,7 @@ func TestServer_Write_Precision(t *testing.T) {
 			t.Fatalf("test init failed: %s", err)
 		}
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -5824,8 +5773,7 @@ func TestServer_Write_Precision(t *testing.T) {
 }
 
 func TestServer_Query_Wildcards(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -5919,19 +5867,16 @@ func TestServer_Query_Wildcards(t *testing.T) {
 		},
 	}...)
 
-	var once sync.Once
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			once.Do(func() {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			})
-
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
-
 			if err := query.Execute(s); err != nil {
 				t.Error(query.Error(err))
 			} else if !query.success() {
@@ -5942,8 +5887,7 @@ func TestServer_Query_Wildcards(t *testing.T) {
 }
 
 func TestServer_Query_WildcardExpansion(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6000,13 +5944,13 @@ func TestServer_Query_WildcardExpansion(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6020,8 +5964,7 @@ func TestServer_Query_WildcardExpansion(t *testing.T) {
 }
 
 func TestServer_Query_AcrossShardsAndFields(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6072,13 +6015,13 @@ func TestServer_Query_AcrossShardsAndFields(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6092,8 +6035,7 @@ func TestServer_Query_AcrossShardsAndFields(t *testing.T) {
 }
 
 func TestServer_Query_OrderedAcrossShards(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6140,13 +6082,13 @@ func TestServer_Query_OrderedAcrossShards(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6160,8 +6102,7 @@ func TestServer_Query_OrderedAcrossShards(t *testing.T) {
 }
 
 func TestServer_Query_Where_Fields(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6359,13 +6300,13 @@ func TestServer_Query_Where_Fields(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6380,8 +6321,7 @@ func TestServer_Query_Where_Fields(t *testing.T) {
 }
 
 func TestServer_Query_Where_With_Tags(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6440,14 +6380,13 @@ func TestServer_Query_Where_With_Tags(t *testing.T) {
 		},
 	}...)
 
-	var once sync.Once
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			once.Do(func() {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			})
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6461,8 +6400,7 @@ func TestServer_Query_Where_With_Tags(t *testing.T) {
 }
 
 func TestServer_Query_With_EmptyTags(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6542,13 +6480,13 @@ func TestServer_Query_With_EmptyTags(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6562,8 +6500,7 @@ func TestServer_Query_With_EmptyTags(t *testing.T) {
 }
 
 func TestServer_Query_LimitAndOffset(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6657,13 +6594,13 @@ func TestServer_Query_LimitAndOffset(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6677,8 +6614,7 @@ func TestServer_Query_LimitAndOffset(t *testing.T) {
 }
 
 func TestServer_Query_Fill(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6760,13 +6696,13 @@ func TestServer_Query_Fill(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6780,8 +6716,7 @@ func TestServer_Query_Fill(t *testing.T) {
 }
 
 func TestServer_Query_ImplicitFill(t *testing.T) {
-	t.Parallel()
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.Coordinator.MaxSelectBucketsN = 5
 	s := OpenServer(config)
 	defer s.Close()
@@ -6816,13 +6751,13 @@ func TestServer_Query_ImplicitFill(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6836,8 +6771,7 @@ func TestServer_Query_ImplicitFill(t *testing.T) {
 }
 
 func TestServer_Query_TimeZone(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -6912,13 +6846,13 @@ func TestServer_Query_TimeZone(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6932,8 +6866,7 @@ func TestServer_Query_TimeZone(t *testing.T) {
 }
 
 func TestServer_Query_MaxRowLimit(t *testing.T) {
-	t.Parallel()
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.HTTPD.MaxRowLimit = 10
 
 	s := OpenServer(config)
@@ -6957,6 +6890,7 @@ func TestServer_Query_MaxRowLimit(t *testing.T) {
 	test.writes = Writes{
 		&Write{data: strings.Join(writes, "\n")},
 	}
+	t.Parallel()
 
 	test.addQueries([]*Query{
 		&Query{
@@ -6967,13 +6901,12 @@ func TestServer_Query_MaxRowLimit(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -6987,8 +6920,7 @@ func TestServer_Query_MaxRowLimit(t *testing.T) {
 }
 
 func TestServer_Query_DropAndRecreateMeasurement(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7090,14 +7022,14 @@ func TestServer_Query_DropAndRecreateMeasurement(t *testing.T) {
 		},
 	}...)
 
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
 	// Test that re-inserting the measurement works fine.
-	for i, query := range test.queries {
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7129,13 +7061,11 @@ func TestServer_Query_DropAndRecreateMeasurement(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7149,8 +7079,7 @@ func TestServer_Query_DropAndRecreateMeasurement(t *testing.T) {
 }
 
 func TestServer_Query_ShowQueries_Future(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7199,13 +7128,13 @@ func TestServer_Query_ShowQueries_Future(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7219,9 +7148,7 @@ func TestServer_Query_ShowQueries_Future(t *testing.T) {
 }
 
 func TestServer_Query_ShowSeries(t *testing.T) {
-	t.Parallel()
-
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7330,14 +7257,13 @@ func TestServer_Query_ShowSeries(t *testing.T) {
 		},
 	}...)
 
-	var once sync.Once
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			once.Do(func() {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			})
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7355,8 +7281,7 @@ func TestServer_Query_ShowSeriesCardinalityEstimation(t *testing.T) {
 		t.Skip("Skipping test in short, race and appveyor mode.")
 	}
 
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7387,13 +7312,13 @@ func TestServer_Query_ShowSeriesCardinalityEstimation(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7425,8 +7350,7 @@ func TestServer_Query_ShowSeriesCardinalityEstimation(t *testing.T) {
 }
 
 func TestServer_Query_ShowSeriesExactCardinality(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7541,13 +7465,13 @@ func TestServer_Query_ShowSeriesExactCardinality(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7561,8 +7485,7 @@ func TestServer_Query_ShowSeriesExactCardinality(t *testing.T) {
 }
 
 func TestServer_Query_ShowStats(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7583,13 +7506,13 @@ func TestServer_Query_ShowStats(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7606,7 +7529,7 @@ func TestServer_Query_ShowIngressStats(t *testing.T) {
 	t.Parallel()
 
 	configWithIngress := func(measurement, login bool) *Config {
-		c := NewConfig()
+		c := NewConfig(t.Name())
 		c.Data.IngressMetricByMeasurement = measurement
 		c.Data.IngressMetricByLogin = login
 		return c
@@ -7664,7 +7587,7 @@ func TestServer_Query_ShowIngressStats(t *testing.T) {
 			if _, err := s.Write("db0", "rp0", writes, url.Values{}); err != nil {
 				t.Fatalf("Unexpected write error: %v", err)
 			}
-			results, err := s.Query("show stats")
+			results, _, err := s.Query("show stats")
 			if err != nil {
 				t.Fatalf("stats query error: %v", err)
 			}
@@ -7697,8 +7620,7 @@ func TestServer_Query_ShowIngressStats(t *testing.T) {
 }
 
 func TestServer_Query_ShowMeasurements(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7867,12 +7789,12 @@ func TestServer_Query_ShowMeasurements(t *testing.T) {
 		}...)
 	}
 
-	for i, query := range test.queries {
-		if i == 0 {
-			if err := test.init(s); err != nil {
-				t.Fatalf("test init failed: %s", err)
-			}
-		}
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		if query.skip {
 			t.Logf("SKIP:: %s", query.name)
 			continue
@@ -7890,8 +7812,7 @@ func TestServer_Query_ShowMeasurementCardinalityEstimation(t *testing.T) {
 		t.Skip("Skipping test in short, race and appveyor mode.")
 	}
 
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -7921,13 +7842,13 @@ func TestServer_Query_ShowMeasurementCardinalityEstimation(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -7959,8 +7880,7 @@ func TestServer_Query_ShowMeasurementCardinalityEstimation(t *testing.T) {
 }
 
 func TestServer_Query_ShowMeasurementExactCardinality(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -8057,13 +7977,13 @@ func TestServer_Query_ShowMeasurementExactCardinality(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -8077,8 +7997,7 @@ func TestServer_Query_ShowMeasurementExactCardinality(t *testing.T) {
 }
 
 func TestServer_Query_ShowTagKeys(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -8190,15 +8109,13 @@ func TestServer_Query_ShowTagKeys(t *testing.T) {
 		},
 	}...)
 
-	var initialized bool
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if !initialized {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-				initialized = true
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -8212,11 +8129,11 @@ func TestServer_Query_ShowTagKeys(t *testing.T) {
 }
 
 func TestServer_Query_ShowTagValues(t *testing.T) {
-	t.Parallel()
-	conf := NewConfig()
+	conf := NewConfig(t.Name())
 	s := OpenServer(conf)
 	defer s.Close()
 	rps := []string{"rp0", "rp1", "rp2", "rp3"}
+	t.Parallel()
 
 	writes := [][]string{
 		[]string{
@@ -8453,8 +8370,7 @@ func TestServer_Query_ShowTagValues(t *testing.T) {
 }
 
 func TestServer_Query_ShowTagKeyCardinality(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -8633,13 +8549,13 @@ func TestServer_Query_ShowTagKeyCardinality(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -8653,8 +8569,7 @@ func TestServer_Query_ShowTagKeyCardinality(t *testing.T) {
 }
 
 func TestServer_Query_ShowFieldKeys(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -8697,13 +8612,13 @@ func TestServer_Query_ShowFieldKeys(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -8717,8 +8632,7 @@ func TestServer_Query_ShowFieldKeys(t *testing.T) {
 }
 
 func TestServer_Query_ShowFieldKeyCardinality(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -8779,13 +8693,13 @@ func TestServer_Query_ShowFieldKeyCardinality(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -8799,8 +8713,7 @@ func TestServer_Query_ShowFieldKeyCardinality(t *testing.T) {
 }
 
 func TestServer_ContinuousQuery(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -8918,11 +8831,8 @@ func TestServer_ContinuousQuery_Deadlock(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping CQ deadlock test")
 	}
-	t.Parallel()
-	s := OpenServer(NewConfig())
-	defer func() {
-		s.Close()
-	}()
+	s := OpenServer(NewConfig(t.Name()))
+	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
 		t.Fatal(err)
@@ -8938,13 +8848,13 @@ func TestServer_ContinuousQuery_Deadlock(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -8991,8 +8901,7 @@ func TestServer_ContinuousQuery_Deadlock(t *testing.T) {
 }
 
 func TestServer_Query_EvilIdentifiers(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9013,13 +8922,13 @@ func TestServer_Query_EvilIdentifiers(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -9033,8 +8942,7 @@ func TestServer_Query_EvilIdentifiers(t *testing.T) {
 }
 
 func TestServer_Query_OrderByTime(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9092,12 +9000,12 @@ func TestServer_Query_OrderByTime(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
-		if i == 0 {
-			if err := test.init(s); err != nil {
-				t.Fatalf("test init failed: %s", err)
-			}
-		}
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		if query.skip {
 			t.Logf("SKIP:: %s", query.name)
 			continue
@@ -9111,8 +9019,7 @@ func TestServer_Query_OrderByTime(t *testing.T) {
 }
 
 func TestServer_Query_FieldWithMultiplePeriods(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9143,12 +9050,12 @@ func TestServer_Query_FieldWithMultiplePeriods(t *testing.T) {
 		},
 	}...)
 
-	for i, query := range test.queries {
-		if i == 0 {
-			if err := test.init(s); err != nil {
-				t.Fatalf("test init failed: %s", err)
-			}
-		}
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		if query.skip {
 			t.Logf("SKIP:: %s", query.name)
 			continue
@@ -9162,8 +9069,7 @@ func TestServer_Query_FieldWithMultiplePeriods(t *testing.T) {
 }
 
 func TestServer_Query_FieldWithMultiplePeriodsMeasurementPrefixMatch(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9194,12 +9100,12 @@ func TestServer_Query_FieldWithMultiplePeriodsMeasurementPrefixMatch(t *testing.
 		},
 	}...)
 
-	for i, query := range test.queries {
-		if i == 0 {
-			if err := test.init(s); err != nil {
-				t.Fatalf("test init failed: %s", err)
-			}
-		}
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		if query.skip {
 			t.Logf("SKIP:: %s", query.name)
 			continue
@@ -9213,8 +9119,7 @@ func TestServer_Query_FieldWithMultiplePeriodsMeasurementPrefixMatch(t *testing.
 }
 
 func TestServer_Query_IntoTarget(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9252,6 +9157,7 @@ func TestServer_Query_IntoTarget(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9270,8 +9176,7 @@ func TestServer_Query_IntoTarget(t *testing.T) {
 // Ensure that binary operators of aggregates of separate fields, when a field is sometimes missing and sometimes present,
 // result in values that are still properly time-aligned.
 func TestServer_Query_IntoTarget_Sparse(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9310,6 +9215,7 @@ func TestServer_Query_IntoTarget_Sparse(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9328,8 +9234,7 @@ func TestServer_Query_IntoTarget_Sparse(t *testing.T) {
 // This test ensures that data is not duplicated with measurements
 // of the same name.
 func TestServer_Query_DuplicateMeasurements(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	// Create a second database.
@@ -9354,6 +9259,7 @@ func TestServer_Query_DuplicateMeasurements(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	test.addQueries([]*Query{
 		&Query{
@@ -9379,8 +9285,7 @@ func TestServer_Query_DuplicateMeasurements(t *testing.T) {
 }
 
 func TestServer_Query_LargeTimestamp(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	writes := []string{
@@ -9404,6 +9309,7 @@ func TestServer_Query_LargeTimestamp(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	// Open a new server with the same configuration file.
 	// This is to ensure the meta data was marshaled correctly.
@@ -9425,8 +9331,7 @@ func TestServer_Query_LargeTimestamp(t *testing.T) {
 }
 
 func TestServer_Query_DotProduct(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	// Create a second database.
@@ -9448,6 +9353,7 @@ func TestServer_Query_DotProduct(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	test.addQueries([]*Query{
 		&Query{
@@ -9475,9 +9381,9 @@ func TestServer_Query_DotProduct(t *testing.T) {
 // This test reproduced a data race with closing the
 // Subscriber points channel while writes were in-flight in the PointsWriter.
 func TestServer_ConcurrentPointsWriter_Subscriber(t *testing.T) {
-	t.Parallel()
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
+	t.Parallel()
 
 	// goroutine to write points
 	done := make(chan struct{})
@@ -9507,8 +9413,7 @@ func TestServer_ConcurrentPointsWriter_Subscriber(t *testing.T) {
 
 // Ensure time in where clause is inclusive
 func TestServer_WhereTimeInclusive(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9598,6 +9503,7 @@ func TestServer_WhereTimeInclusive(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9615,8 +9521,7 @@ func TestServer_WhereTimeInclusive(t *testing.T) {
 
 func TestServer_Query_ImplicitEndTime(t *testing.T) {
 	t.Skip("flaky test")
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9654,6 +9559,7 @@ func TestServer_Query_ImplicitEndTime(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9670,8 +9576,7 @@ func TestServer_Query_ImplicitEndTime(t *testing.T) {
 }
 
 func TestServer_Query_Sample_Wildcard(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9699,6 +9604,7 @@ func TestServer_Query_Sample_Wildcard(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9715,8 +9621,7 @@ func TestServer_Query_Sample_Wildcard(t *testing.T) {
 }
 
 func TestServer_Query_Sample_LimitOffset(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9758,6 +9663,7 @@ func TestServer_Query_Sample_LimitOffset(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9775,8 +9681,7 @@ func TestServer_Query_Sample_LimitOffset(t *testing.T) {
 
 // Validate that nested aggregates don't panic
 func TestServer_NestedAggregateWithMathPanics(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9810,6 +9715,7 @@ func TestServer_NestedAggregateWithMathPanics(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
@@ -9826,8 +9732,7 @@ func TestServer_NestedAggregateWithMathPanics(t *testing.T) {
 }
 
 func TestServer_Prometheus_Read(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9851,6 +9756,7 @@ func TestServer_Prometheus_Read(t *testing.T) {
 	if err := test.init(s); err != nil {
 		t.Fatalf("test init failed: %s", err)
 	}
+	t.Parallel()
 
 	req := &prompb.ReadRequest{
 		Queries: []*prompb.Query{{
@@ -9941,8 +9847,7 @@ func TestServer_Prometheus_Read(t *testing.T) {
 }
 
 func TestServer_Prometheus_Write(t *testing.T) {
-	t.Parallel()
-	s := OpenServer(NewConfig())
+	s := OpenServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	if err := s.CreateDatabaseAndRetentionPolicy("db0", NewRetentionPolicySpec("rp0", 1, 0), true); err != nil {
@@ -9999,13 +9904,13 @@ func TestServer_Prometheus_Write(t *testing.T) {
 		t.Fatalf("unexpected status: %d. Body: %s", resp.StatusCode, MustReadAll(resp.Body))
 	}
 
-	for i, query := range test.queries {
+	if err := test.init(s); err != nil {
+		t.Fatalf("test init failed: %s", err)
+	}
+	t.Parallel()
+
+	for _, query := range test.queries {
 		t.Run(query.name, func(t *testing.T) {
-			if i == 0 {
-				if err := test.init(s); err != nil {
-					t.Fatalf("test init failed: %s", err)
-				}
-			}
 			if query.skip {
 				t.Skipf("SKIP:: %s", query.name)
 			}
@@ -10019,7 +9924,7 @@ func TestServer_Prometheus_Write(t *testing.T) {
 }
 
 func TestCliEndToEnd(t *testing.T) {
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.HTTPD.FluxEnabled = true
 	s := OpenServer(config)
 	defer s.Close()
@@ -10124,7 +10029,7 @@ Table: keys: [_field, _measurement, k]
 }
 
 func TestGroupByEndToEnd(t *testing.T) {
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.HTTPD.FluxEnabled = true
 	s := OpenServer(config)
 	defer s.Close()
@@ -10147,14 +10052,14 @@ func TestGroupByEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, s.WritePoints(t.Name(), "autogen", models.ConsistencyLevelAny, nil, points))
 
-	results, err := s.QueryWithParams(`SELECT SUM(ncount) as scount FROM (SELECT NON_NEGATIVE_DIFFERENCE(total_count) as ncount FROM m0 WHERE time >= '2021-05-10T00:00:00Z' AND time <= '2021-05-15T23:59:59Z' AND tenant_id='tb' GROUP BY env) WHERE time >= '2021-05-10T00:00:00Z' AND time <= '2021-05-15T23:59:59Z' GROUP BY time(1d)`, url.Values{"db": []string{t.Name()}})
+	results, _, err := s.QueryWithParams(`SELECT SUM(ncount) as scount FROM (SELECT NON_NEGATIVE_DIFFERENCE(total_count) as ncount FROM m0 WHERE time >= '2021-05-10T00:00:00Z' AND time <= '2021-05-15T23:59:59Z' AND tenant_id='tb' GROUP BY env) WHERE time >= '2021-05-10T00:00:00Z' AND time <= '2021-05-15T23:59:59Z' GROUP BY time(1d)`, url.Values{"db": []string{t.Name()}})
 	require.NoError(t, err)
 	// This tests a regression in 1.9.0 where this returned multiple rows for each day due to an incorrect attempted optimization of the merge sort iteration.
 	assert.Equal(t, `{"results":[{"statement_id":0,"series":[{"name":"m0","columns":["time","scount"],"values":[["2021-05-10T00:00:00Z",10],["2021-05-11T00:00:00Z",5],["2021-05-12T00:00:00Z",3],["2021-05-13T00:00:00Z",7],["2021-05-14T00:00:00Z",4],["2021-05-15T00:00:00Z",null]]}]}]}`, results)
 }
 
 func TestFluxBasicEndToEnd(t *testing.T) {
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.HTTPD.FluxEnabled = true
 	s := OpenServer(config)
 	defer s.Close()
@@ -10276,7 +10181,7 @@ test _sum = () => ({input: testing.loadStorage(csv: inData), want: testing.loadM
 }
 
 func TestFluxRegressionEndToEnd(t *testing.T) {
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.HTTPD.FluxEnabled = true
 	s := OpenServer(config)
 	defer s.Close()
@@ -10479,7 +10384,7 @@ func TestFluxEndToEnd(t *testing.T) {
 }
 
 func runEndToEnd(t *testing.T, pkgs []*ast.Package) {
-	config := NewConfig()
+	config := NewConfig(t.Name())
 	config.HTTPD.FluxEnabled = true
 	s := OpenServer(config)
 	defer s.Close()

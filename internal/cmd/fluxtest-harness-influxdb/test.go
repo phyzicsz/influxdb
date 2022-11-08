@@ -69,7 +69,7 @@ func (t *testExecutor) Run(pkg *ast.Package) error {
 func (t *testExecutor) run(pkg *ast.Package, index string, logOut io.Writer) error {
 	_, _ = fmt.Fprintf(os.Stderr, "Testing %s...\n", index)
 
-	config := tests.NewConfig()
+	config := tests.NewConfig("[NO TEST NAME]")
 	config.HTTPD.FluxEnabled = true
 	config.HTTPD.FluxLogEnabled = true
 	config.Data.Index = index

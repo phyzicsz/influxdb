@@ -59,7 +59,7 @@ func setupCommands(s *LocalServer, tracker *SeriesTracker) []Command {
 		tracker.Lock()
 		tracker.DeleteMeasurement(name)
 		query := fmt.Sprintf("DROP MEASUREMENT %s", name)
-		_, err := s.QueryWithParams(query, url.Values{"db": []string{"db0"}})
+		_, _, err := s.QueryWithParams(query, url.Values{"db": []string{"db0"}})
 		if err != nil {
 			return "", err
 		}
@@ -77,7 +77,7 @@ func setupCommands(s *LocalServer, tracker *SeriesTracker) []Command {
 		tracker.Lock()
 		tracker.DropSeries(name, tags)
 		query := fmt.Sprintf("DROP SERIES FROM %q WHERE %q = 'a'", name, tagKey)
-		_, err := s.QueryWithParams(query, url.Values{"db": []string{"db0"}})
+		_, _, err := s.QueryWithParams(query, url.Values{"db": []string{"db0"}})
 		if err != nil {
 			return "", err
 		}
@@ -93,7 +93,7 @@ func setupCommands(s *LocalServer, tracker *SeriesTracker) []Command {
 		tracker.Lock()
 		min, max := tracker.DeleteRandomRange(name)
 		query := fmt.Sprintf("DELETE FROM %q WHERE time >= %d AND time <= %d ", name, min, max)
-		_, err := s.QueryWithParams(query, url.Values{"db": []string{"db0"}})
+		_, _, err := s.QueryWithParams(query, url.Values{"db": []string{"db0"}})
 		if err != nil {
 			return "", err
 		}
@@ -128,7 +128,7 @@ func TestServer_DELETE_DROP_SERIES_DROP_MEASUREMENT(t *testing.T) {
 		t.Skip("Skipping in short mode")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	localServer := s.(*LocalServer)
@@ -180,7 +180,7 @@ func TestServer_Insert_Delete_1515688266259660938_same_shard(t *testing.T) {
 		t.Skip("Skipping test in short or race mode.")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	for i := 0; i < 100; i++ {
@@ -209,7 +209,7 @@ func TestServer_Insert_Delete_1515688266259660938(t *testing.T) {
 		t.Skip("Skipping test in short or race mode.")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	for i := 0; i < 100; i++ {
@@ -239,7 +239,7 @@ func TestServer_Insert_Delete_1515771752164780713(t *testing.T) {
 		t.Skip("Skipping test in short or race mode.")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	mustWrite(s, "m6,s72=a v=1 641480139110750")            // series id 257 in shard 1
@@ -263,7 +263,7 @@ func TestServer_Insert_Delete_1515777603585914810(t *testing.T) {
 	// Original seed was 1515777603585914810.
 	t.Parallel()
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	mustWrite(s, "m5,s99=a v=1 1")
@@ -279,9 +279,7 @@ func TestServer_Insert_Delete_1515777603585914810(t *testing.T) {
 
 // This test reproduces the issue identified in https://github.com/influxdata/influxdb/issues/10052
 func TestServer_Insert_Delete_10052(t *testing.T) {
-	t.Parallel()
-
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	mustWrite(s,
@@ -316,7 +314,7 @@ func TestServer_Insert_Delete_10052(t *testing.T) {
 
 func mustGetSeries(s Server) []string {
 	// Compare series left in index.
-	result, err := s.QueryWithParams("SHOW SERIES", url.Values{"db": []string{"db0"}})
+	result, _, err := s.QueryWithParams("SHOW SERIES", url.Values{"db": []string{"db0"}})
 	if err != nil {
 		panic(err)
 	}
@@ -330,7 +328,7 @@ func mustGetSeries(s Server) []string {
 
 func mustGetFieldKeys(s Server) []string {
 	// Compare series left in index.
-	result, err := s.QueryWithParams("SHOW FIELD KEYS", url.Values{"db": []string{"db0"}})
+	result, _, err := s.QueryWithParams("SHOW FIELD KEYS", url.Values{"db": []string{"db0"}})
 	if err != nil {
 		panic(err)
 	}
@@ -360,14 +358,14 @@ func mustWrite(s Server, points ...string) {
 
 func mustDelete(s Server, name string, min, max int64) {
 	query := fmt.Sprintf("DELETE FROM %q WHERE time >= %d AND time <= %d ", name, min, max)
-	if _, err := s.QueryWithParams(query, url.Values{"db": []string{db}}); err != nil {
+	if _, _, err := s.QueryWithParams(query, url.Values{"db": []string{db}}); err != nil {
 		panic(err)
 	}
 }
 
 func mustDropMeasurement(s Server, name string) {
 	query := fmt.Sprintf("DROP MEASUREMENT %q", name)
-	if _, err := s.QueryWithParams(query, url.Values{"db": []string{db}}); err != nil {
+	if _, _, err := s.QueryWithParams(query, url.Values{"db": []string{db}}); err != nil {
 		panic(err)
 	}
 }
@@ -592,7 +590,7 @@ func (s *SeriesTracker) randomTime() (time.Time, uint64) {
 // Verify verifies that the server's view of the index/series file matches the
 // series tracker's.
 func (s *SeriesTracker) Verify() error {
-	res, err := s.server.QueryWithParams("SHOW SERIES", url.Values{"db": []string{"db0"}})
+	res, _, err := s.server.QueryWithParams("SHOW SERIES", url.Values{"db": []string{"db0"}})
 	if err != nil {
 		return err
 	}

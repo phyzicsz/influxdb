@@ -216,8 +216,7 @@ jobs:
           name: Execute tests
           command: |
             set -x
-            mkdir -p junit
-            gotestsum --junitfile junit/influxdb.junit.xml -- ./...
+            go test -count 1 ./...
           no_output_timeout: 1500s
       - store_test_results:
           path: junit/
@@ -235,9 +234,8 @@ jobs:
           name: Execute tests
           command: |
             set -x
-            mkdir -p junit-tsi
             export INFLUXDB_DATA_INDEX_VERSION="tsi1"
-            gotestsum --junitfile junit-tsi/influxdb.junit.xml -- ./...
+            go test -count 1 ./...
           no_output_timeout: 1500s
       - store_test_results:
           path: junit-tsi/
@@ -255,9 +253,8 @@ jobs:
           name: Execute tests
           command: |
             set -x
-            mkdir -p junit-race/
             export GORACE="halt_on_error=1"
-            gotestsum --junitfile junit-race/influxdb.junit.xml -- -race ./...
+            go test -count 1 -race ./...
           no_output_timeout: 1500s
       - store_test_results:
           path: junit-race/

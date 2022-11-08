@@ -13,13 +13,11 @@ import (
 )
 
 func TestConcurrentServer_WriteValues(t *testing.T) {
-	t.Parallel()
-
 	if testing.Short() {
 		t.Skip("Skipping in short mode")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	// The first %%d becomes a %d once fmt is done, so we can then inject new
@@ -38,6 +36,7 @@ func TestConcurrentServer_WriteValues(t *testing.T) {
 
 	var f2 = func() { s.DropDatabase("db0") }
 	runTest(10*time.Second, f1, f2)
+
 }
 
 func TestConcurrentServer_TagValues(t *testing.T) {
@@ -47,7 +46,7 @@ func TestConcurrentServer_TagValues(t *testing.T) {
 		t.Skip("Skipping in short mode")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	write := strings.Join([]string{
@@ -102,7 +101,7 @@ func TestConcurrentServer_ShowMeasurements(t *testing.T) {
 		t.Skip("Skipping in short mode")
 	}
 
-	s := OpenDefaultServer(NewConfig())
+	s := OpenDefaultServer(NewConfig(t.Name()))
 	defer s.Close()
 
 	write := strings.Join([]string{
