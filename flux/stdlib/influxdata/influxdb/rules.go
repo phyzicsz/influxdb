@@ -251,6 +251,7 @@ func hasFieldRef(node *datatypes.Node) bool {
 
 func (rule PushDownReadTagKeysRule) Rewrite(ctx context.Context, pn plan.Node) (plan.Node, bool, error) {
 	// Retrieve the nodes and specs for all of the predecessors.
+
 	distinctSpec := pn.ProcedureSpec().(*universe.DistinctProcedureSpec)
 	keepNode := pn.Predecessors()[0]
 	keepSpec := keepNode.ProcedureSpec().(*universe.SchemaMutationProcedureSpec)
@@ -294,7 +295,7 @@ func (rule PushDownReadTagKeysRule) Rewrite(ctx context.Context, pn plan.Node) (
 
 	// We have passed all of the necessary prerequisites
 	// so construct the procedure spec.
-	return plan.CreatePhysicalNode("ReadTagKeys", &ReadTagKeysPhysSpec{
+	return plan.CreateUniquePhysicalNode(ctx, "ReadTagKeys", &ReadTagKeysPhysSpec{
 		ReadRangePhysSpec: *fromSpec.Copy().(*ReadRangePhysSpec),
 	}), true, nil
 }
@@ -365,7 +366,7 @@ func (rule PushDownReadTagValuesRule) Rewrite(ctx context.Context, pn plan.Node)
 
 	// We have passed all of the necessary prerequisites
 	// so construct the procedure spec.
-	return plan.CreatePhysicalNode("ReadTagValues", &ReadTagValuesPhysSpec{
+	return plan.CreateUniquePhysicalNode(ctx, "ReadTagValues", &ReadTagValuesPhysSpec{
 		ReadRangePhysSpec: *fromSpec.Copy().(*ReadRangePhysSpec),
 		TagKey:            tagKey,
 	}), true, nil
